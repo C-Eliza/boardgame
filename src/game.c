@@ -1,3 +1,5 @@
-//
-// Created by miael on 10/4/2024.
-//
+#include <stdio.h>
+int main()
+{
+    printf("Hello world!\n");
+}
