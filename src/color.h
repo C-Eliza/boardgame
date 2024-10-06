@@ -1,0 +1,21 @@
+#define RESET       "\x1b[0m"
+#define BLACK       "\x1b[30m"
+#define RED         "\x1b[31m"
+#define GREEN       "\x1b[32m"
+#define YELLOW      "\x1b[33m"
+#define BLUE        "\x1b[34m"
+#define MAGENTA     "\x1b[35m"
+#define CYAN        "\x1b[36m"
+#define WHITE       "\x1b[37m"
+#define BOLD        "\x1b[1m"
+#define UNDERLINE   "\x1b[4m"
+#define REDBG       "\x1b[41m"
+#define GREENBG     "\x1b[42m"
+#define YELLOWBG    "\x1b[43m"
+#define BLUEBG      "\x1b[44m"
+#define MAGENTABG   "\x1b[45m"
+#define CYANBG      "\x1b[46m"
+#define WHITEBG     "\x1b[47m"
+
+
+const char *COLORS[] ={REDBG, GREENBG, YELLOWBG, BLUEBG, MAGENTABG, CYANBG, WHITEBG};
