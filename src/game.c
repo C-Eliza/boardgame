@@ -47,6 +47,7 @@ int main(){
       printf("\033[0;0H\033[2J");
     }
     free(valueGrid);
+    for(int i = 0; i < size; i++) free(valueGrid[i]);
     return 0;
 }
 
