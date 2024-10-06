@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
 #include "color.h"
@@ -12,36 +13,9 @@ typedef enum{
     RUNNING_STATE = 2} GameState;
 
 //initializes the game and seed, hopefully prints grid too.
-int **init_game(int size)
+void init_game(int** valueGrid, const int size)
 {
-    srand(time(NULL));
-    
-    //Creating dynamically sized array
-    int **valueGrid;
-    valueGrid = malloc(size * sizeof(*valueGrid));
-    for(int i = 0; i < size; i++) valueGrid[i] = malloc(size * sizeof(*valueGrid[i]));
     for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) valueGrid[i][j] = rand() % 6;
-
-    return valueGrid;
-}
- 
-void printColorChunk(int color){
-  //prints out the four lines of color given a number
-  switch(color)
-  {
-    case 0: printf(REDBG hfsqr  RESET);
-      break;
-    case 1: printf(GREENBG hfsqr  RESET);
-      break;
-    case 2: printf(YELLOWBG hfsqr  RESET);
-      break;
-    case 3: printf(BLUEBG hfsqr  RESET);
-      break;
-    case 4: printf(MAGENTABG hfsqr  RESET);
-      break;
-    case 5: printf(CYANBG hfsqr  RESET);
-      break;
-  }
 }
 
 void drawGrid(int **valueGrid, int size){
@@ -50,31 +24,33 @@ void drawGrid(int **valueGrid, int size){
     for(int k = 0; k < 3; k++){
       for(int j = 0; j < size; j++)
         //printColorChunk(valueGrid[i][j]);
-        printf(&COLORS[valueGrid[i][j]] hfsqr  RESET);
+        printf("%s" hfsqr  RESET,COLORS[valueGrid[i][j]]);
       printf("\n");
     };
 }
 
 int main(){
-  /*
-    //initial state is dead
-    GameState gameState=0;
-    printf(BLUEBG hfsqr  RESET);
-    printf(REDBG hfsqr   RESET);
-    printf(GREENBG hfsqr RESET"\n");
-    //Since a square is 2 hfsqr vertically, we print them again on a new line.
-    printf(BLUEBG hfsqr  RESET);
-    printf(REDBG hfsqr   RESET);
-    printf(GREENBG hfsqr RESET"\n");
-    return 0;
-  */
-  int size = 7;
-  int **valueGrid = init_game(size);
-  drawGrid(valueGrid, size);
 
+    GameState state = DEAD_STATE;
+    GameState *statePtr=&state;
+    //Creating dynamically sized array
+    const int size = 7;
+    int** valueGrid = malloc(size * sizeof(*valueGrid));
+    for(int i = 0; i < size; i++) valueGrid[i] = malloc(size * sizeof(*valueGrid[i]));
+    srand(time(NULL));
+    init_game(valueGrid, size);
+    while (*statePtr==2||1)
+    {
+      sleep(1);
+      init_game(valueGrid, size);
+      drawGrid(valueGrid, size);
+      printf("\033[0;0H\033[2J");
+    }
+    free(valueGrid);
+    return 0;
 }
 
-void updateState(GameState *state)
+void updateState(GameState *stateptr)
 {
 
 }
