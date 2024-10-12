@@ -19,3 +19,10 @@
 
 
 const char *COLORS[] ={REDBG, GREENBG, YELLOWBG, BLUEBG, MAGENTABG, CYANBG, WHITEBG};
+
+#define ti_1 "____                      _____ _ _ _"
+#define ti_2 "/ ___| __ _ _ __ ___   ___|  ___(_) | | ___ _ __"
+#define ti_3 "| |  _ / _` | '_ ` _ \\ / _ \\ |_  | | | |/ _ \\ '__|"
+#define ti_4 "| |_| | (_| | | | | | |  __/  _| | | | |  __/ |"
+#define ti_5 "\\____|\\__,_|_| |_| |_|\\___|_|   |_|_|_|\\___|_|"
+

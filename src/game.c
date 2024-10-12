@@ -1,94 +1,134 @@
+// ReSharper disable CppDFANullDereference
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include "color.h"
 //defines hfsqr so spaces are uniform
 #define hfsqr "      "
-//Defines a state type.
-typedef enum{
-    DEAD_STATE =0,
-    PLAYER_WIN=1,
-    PLAYER_LOSE=-1,
-    RUNNING_STATE = 2} GameState;
 
-int abs(int n){
-  if(n>0) return n;
-  else return -n;
+//Defines a state type.
+typedef enum
+{
+    DEAD_STATE = 0,
+    PLAYER_WIN = 2,
+    PLAYER_LOSE = -1,
+    RUNNING_STATE = 1
+} GameState;
+
+GameState state = DEAD_STATE;
+static GameState* statePtr = &state;
+
+int abs(const int n)
+{
+    if (n > 0) return n;
+    return -n;
 }
 
-int retryRand(int i){
-  int try = -1;
-  do{
-    try = rand() % 6;
-  } while(try==i);
-  return try;
+void updateStatus(GameState* statePtr);
+
+int retryRand(int i)
+{
+    int try = -1;
+    do
+    {
+        try = rand() % 6;
+    }
+    while (try == i);
+    return try;
 }
 
 int touching(int** valueGrid, int* ownedX, int* ownedY, int x, int y, int score)
 {
-  //If x,y is in contact with any element ownedX, ownedY, append x,y to each array
-  for(int index = 0; index < score; index++)
-    if(ownedX[index]==x && ownedY[index]==y) return 0;
-  
-  for(int index = 0; index < score; index++)
-    if( (ownedX[index] == x && abs(ownedY[index] - y) == 1) || (ownedY[index]==y && abs(ownedX[index] - x) == 1) )
-    {
-      ownedX[score] = x;
-      ownedY[score] = y;
-      return 1;
-    };
-  return 0;
+    //If x,y is in contact with any element ownedX, ownedY, append x,y to each array
+    for (int index = 0; index < score; index++)
+        if (ownedX[index] == x && ownedY[index] == y) return 0;
+
+    for (int index = 0; index < score; index++)
+        if ((ownedX[index] == x && abs(ownedY[index] - y) == 1) || (ownedY[index] == y && abs(ownedX[index] - x) == 1))
+        {
+            ownedX[score] = x;
+            ownedY[score] = y;
+            return 1;
+        };
+    return 0;
 }
 
 int updateOwned(int** valueGrid, const int size, int ownedColor, int* ownedX, int* ownedY, int score)
 {
-  int newscore = score;
-  do{
-    score = newscore;
-    for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) 
+    int newscore = score;
+    do
     {
-      if(valueGrid[i][j] != ownedColor) continue;
-      newscore += touching(valueGrid, ownedX, ownedY, i, j, newscore);
-    };
-  } while (newscore != score);
-  return newscore;
+        score = newscore;
+        for (int i = 0; i < size; i++)
+            for (int j = 0; j < size; j++)
+            {
+                if (valueGrid[i][j] != ownedColor) continue;
+                newscore += touching(valueGrid, ownedX, ownedY, i, j, newscore);
+            };
+        //add call for Update Status Here
+        //updateStatus(statePtr);
+    }
+    while (newscore != score);
+    return newscore;
 }
 
 void changeGridColor(int** valueGrid, int ownedColor, int* ownedX, int* ownedY, int score)
 {
-  for(int i = 0; i < score; i++) valueGrid[ownedX[i]][ownedY[i]] = ownedColor;
+    for (int i = 0; i < score; i++) valueGrid[ownedX[i]][ownedY[i]] = ownedColor;
 }
 
-//initializes the game and seed, hopefully prints grid too.
+//initializes the game and seed.
 void init_game(int** valueGrid, const int size)
 {
-    for(int i = 0; i < size; i++)
-      for(int j = 0; j < size; j++){
-        valueGrid[i][j] = rand() % 6;
-        if(i) if(valueGrid[i][j] == valueGrid[i-1][j]) valueGrid[i][j] = retryRand(valueGrid[i-1][j]);
-        if(j) if(valueGrid[i][j] == valueGrid[i][j-1]) j--;
-    };
+    for (int i = 0; i < size; i++)
+        for (int j = 0; j < size; j++)
+        {
+            valueGrid[i][j] = rand() % 6;
+            if (i) if (valueGrid[i][j] == valueGrid[i - 1][j]) valueGrid[i][j] = retryRand(valueGrid[i - 1][j]);
+            if (j) if (valueGrid[i][j] == valueGrid[i][j - 1]) j--;
+        };
 }
 
-void drawGrid(int **valueGrid, int size){
-  //printing different colors for each possible grid value
-  for(int i = 0; i < size; i++)
-    for(int k = 0; k < 3; k++){
-      for(int j = 0; j < size; j++)
-        printf("%s" hfsqr  RESET,COLORS[valueGrid[i][j]]);
-      printf("\n");
-    };
+void drawGrid(int** valueGrid, int size)
+{
+    //printing different colors for each possible grid value
+    for (int i = 0; i < size; i++)
+        for (int k = 0; k < 3; k++)
+        {
+            //indents the entire grid, need to figure out appropriate value to center
+            printf(hfsqr hfsqr hfsqr);
+            for (int j = 0; j < size; j++)
+                printf("%s" hfsqr RESET, COLORS[valueGrid[i][j]]);
+            printf("\n");
+        };
 }
 
-int main(){
+//define half a second in micro seconds.
+#define hSECu 500000
 
-    GameState state = DEAD_STATE;
-    GameState *statePtr=&state;
-    //Creating dynamically sized array
+
+int main()
+{
+    printf("\x1b[0;0H\x1b[2J");
+    printf("\t\t"RED " "ti_1"\n\t\t"YELLOW ti_2"\n\t\t"GREEN ti_3"\n\t\t"BLUE ti_4"\n\t\t"MAGENTA ti_5 RESET"\n\n");
+    printf("\t\t    "BOLD UNDERLINE "Would you like to play a game?\n"RESET);
+    printf("\t\t\t"GREEN BOLD"[y]:Yes\t\t"RED"[n]:No"RESET"\n");
+    char b=fgetc(stdin);
+    while (b!='y'&&b!='n'){
+        printf("\t\t    "BOLD UNDERLINE "Not a valid option, please try again: "RESET);
+        //mitigates the buffering of the enter key
+        //breaks if user does something like "l    h" which makes stream misaligned.
+        fgetc(stdin);
+        b=fgetc(stdin);
+    }
+    //The last bit for 'y' is 1, while for 'n' it's 0 so check if b is y or n by checking the last bit. "Even or Odd"
+    *statePtr = b&1;
     const int size = 7;
+    //Creating dynamically sized array
     int** valueGrid = malloc(size * sizeof(*valueGrid));
-    for(int i = 0; i < size; i++) valueGrid[i] = malloc(size * sizeof(*valueGrid[i]));
+    for (int i = 0; i < size; i++) valueGrid[i] = malloc(size * sizeof(*valueGrid[i]));
     srand(time(NULL));
     init_game(valueGrid, size);
     int color = 0;
@@ -97,31 +137,21 @@ int main(){
     ownedX[0] = 0;
     ownedY[0] = 0;
     int score = 1;
-    while (*statePtr==2||1)
+    while (*statePtr == 1)
     {
-      sleep(1);
-      color = (color + 1) % 6;
-      changeGridColor(valueGrid, color, ownedX, ownedY, score);
-      score = updateOwned(valueGrid, size, color, ownedX, ownedY, score);
-      drawGrid(valueGrid, size);
-      printf("\033[0;0H\033[2J");
+        usleep(hSECu);
+        drawGrid(valueGrid, size);
+        color = (color + 1) % 6;
+        changeGridColor(valueGrid, color, ownedX, ownedY, score);
+        score = updateOwned(valueGrid, size, color, ownedX, ownedY, score);
+        printf("\x1b[0;0H\x1b[2J");
     }
+    for (int i = 0; i < size; i++) free(valueGrid[i]);
     free(valueGrid);
-    for(int i = 0; i < size; i++) free(valueGrid[i]);
     return 0;
 }
 
-void updateState(GameState *stateptr)
+void updateState(GameState* stateptr,int scoreX,int scoreY)
 {
-
-}
-
-
-//Takes in a string with a color modifier and changes the modifier to be of a target color
-void changeColor(char *gridSqr, unsigned int targetColor)
-{
-    //validates length of string so no overflow
-
-    //changes the first n characters to be a different element of COLORS[]
 
 }
