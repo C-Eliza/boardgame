@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 #include "color.h"
 //defines hfsqr so spaces are uniform
 #define hfsqr "      "
-
+//defines min macro
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define abs(x) ((x)>0?(x):-(x))
 //Defines a state type.
 typedef enum
 {
@@ -20,15 +21,18 @@ typedef enum
 GameState state = DEAD_STATE;
 static GameState* statePtr = &state;
 
-int abs(const int n)
-{
-    if (n > 0) return n;
-    return -n;
-}
-
 void updateStatus(GameState* statePtr);
 
-int retryRand(int i)
+int getScore(const int *arr,int ln)
+{
+    int x = 0;
+    for(int i=0;i<ln;i++)
+    {
+        x+=MIN(arr[i],1);
+    }
+    return x;
+}
+int retryRand(const int i)
 {
     int try = -1;
     do
@@ -39,7 +43,7 @@ int retryRand(int i)
     return try;
 }
 
-int touching(int** valueGrid, int* ownedX, int* ownedY, int x, int y, int score)
+int touching(int** valueGrid, int* ownedX, int* ownedY, const int x, const int y, const int score)
 {
     //If x,y is in contact with any element ownedX, ownedY, append x,y to each array
     for (int index = 0; index < score; index++)
@@ -55,26 +59,26 @@ int touching(int** valueGrid, int* ownedX, int* ownedY, int x, int y, int score)
     return 0;
 }
 
-int updateOwned(int** valueGrid, const int size, int ownedColor, int* ownedX, int* ownedY, int score)
+int updateOwned(int** valueGrid, const int size, const int ownedColor, int* ownedX, int* ownedY, int score)
 {
-    int newscore = score;
+    int newScore = score;
     do
     {
-        score = newscore;
+        score = newScore;
         for (int i = 0; i < size; i++)
             for (int j = 0; j < size; j++)
             {
                 if (valueGrid[i][j] != ownedColor) continue;
-                newscore += touching(valueGrid, ownedX, ownedY, i, j, newscore);
+                newScore += touching(valueGrid, ownedX, ownedY, i, j, newScore);
             };
         //add call for Update Status Here
         //updateStatus(statePtr);
     }
-    while (newscore != score);
-    return newscore;
+    while (newScore != score);
+    return newScore;
 }
 
-void changeGridColor(int** valueGrid, int ownedColor, int* ownedX, int* ownedY, int score)
+void changeGridColor(int** valueGrid, const int ownedColor, const int* ownedX, const int* ownedY, const int score)
 {
     for (int i = 0; i < score; i++) valueGrid[ownedX[i]][ownedY[i]] = ownedColor;
 }
@@ -82,6 +86,7 @@ void changeGridColor(int** valueGrid, int ownedColor, int* ownedX, int* ownedY, 
 //initializes the game and seed.
 void init_game(int** valueGrid, const int size)
 {
+    srand(time(NULL));
     for (int i = 0; i < size; i++)
         for (int j = 0; j < size; j++)
         {
@@ -91,7 +96,7 @@ void init_game(int** valueGrid, const int size)
         };
 }
 
-void drawGrid(int** valueGrid, int size)
+void drawGrid(const int** valueGrid, const int size)
 {
     //printing different colors for each possible grid value
     for (int i = 0; i < size; i++)
@@ -105,12 +110,14 @@ void drawGrid(int** valueGrid, int size)
         };
 }
 
+//get available colors for play by copying colors from src into destination whose size is src-2.
+
 //define half a second in micro seconds.
 #define hSECu 500000
 
-
 int main()
 {
+    //setbuf(stdout, 0);
     printf("\x1b[0;0H\x1b[2J");
     printf("\t\t"RED " "ti_1"\n\t\t"YELLOW ti_2"\n\t\t"GREEN ti_3"\n\t\t"BLUE ti_4"\n\t\t"MAGENTA ti_5 RESET"\n\n");
     printf("\t\t    "BOLD UNDERLINE "Would you like to play a game?\n"RESET);
@@ -129,7 +136,6 @@ int main()
     //Creating dynamically sized array
     int** valueGrid = malloc(size * sizeof(*valueGrid));
     for (int i = 0; i < size; i++) valueGrid[i] = malloc(size * sizeof(*valueGrid[i]));
-    srand(time(NULL));
     init_game(valueGrid, size);
     int color = 0;
     int ownedX[size * size];
@@ -137,9 +143,10 @@ int main()
     ownedX[0] = 0;
     ownedY[0] = 0;
     int score = 1;
+    char availableColors[4];
     while (*statePtr == 1)
     {
-        usleep(hSECu);
+        sleep(1);
         drawGrid(valueGrid, size);
         color = (color + 1) % 6;
         changeGridColor(valueGrid, color, ownedX, ownedY, score);
@@ -151,7 +158,7 @@ int main()
     return 0;
 }
 
-void updateState(GameState* stateptr,int scoreX,int scoreY)
+void updateState(GameState* statePtr,int scoreX,int scoreY)
 {
 
 }
