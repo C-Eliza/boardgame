@@ -94,6 +94,8 @@ void init_game(int** valueGrid, const int size)
             if (i) if (valueGrid[i][j] == valueGrid[i - 1][j]) valueGrid[i][j] = retryRand(valueGrid[i - 1][j]);
             if (j) if (valueGrid[i][j] == valueGrid[i][j - 1]) j--;
         };
+    //makes sure corners are not matching colors
+    if(valueGrid[0][0]==valueGrid[size-1][size-1]) retryRand(valueGrid[0][0]);
 }
 
 void drawGrid(const int** valueGrid, const int size)
@@ -123,7 +125,7 @@ int main()
     printf("\t\t    "BOLD UNDERLINE "Would you like to play a game?\n"RESET);
     printf("\t\t\t"GREEN BOLD"[y]:Yes\t\t"RED"[n]:No"RESET"\n");
     char b=fgetc(stdin);
-    while (b!='y'&&b!='n'){
+    while (b!='y'&&b!='Y'&&b!='N'&&b!='n'){
         printf("\t\t    "BOLD UNDERLINE "Not a valid option, please try again: "RESET);
         //mitigates the buffering of the enter key
         //breaks if user does something like "l    h" which makes stream misaligned.
@@ -137,7 +139,7 @@ int main()
     int** valueGrid = malloc(size * sizeof(*valueGrid));
     for (int i = 0; i < size; i++) valueGrid[i] = malloc(size * sizeof(*valueGrid[i]));
     init_game(valueGrid, size);
-    int color = 0;
+    int input_color = 0;
     int ownedX[size * size];
     int ownedY[size * size];
     ownedX[0] = 0;
@@ -148,9 +150,32 @@ int main()
     {
         sleep(1);
         drawGrid(valueGrid, size);
-        color = (color + 1) % 6;
-        changeGridColor(valueGrid, color, ownedX, ownedY, score);
-        score = updateOwned(valueGrid, size, color, ownedX, ownedY, score);
+        //not a string, but a char pointer.
+        char i_dst=0;
+        //get available colors for play by copying colors from src into destination whose size is src-2.
+        //src in this case is just an array of integers from 0 to 5;
+        for(int i = 0; i < size; i++)
+        {
+            //only elements not matching the corner get copied
+            if(!(i==valueGrid[0][0]||i==valueGrid[size-1][size-1]))
+            {
+                availableColors[i_dst]=i;
+                i_dst++;
+            }
+        }
+        printf("\n\t\t");
+        //prints the available options for play
+        for(int i = 0; i < 4; i++)
+        {
+            printf("%d: %s " RESET"\t", availableColors[i], COLORS[availableColors[i]]);
+        }
+        printf("\n");
+        scanf("%d",&input_color);
+        /*
+         check if input color is an available input and ask user again if invalid input
+        */
+        changeGridColor(valueGrid, input_color, ownedX, ownedY, score);
+        score = updateOwned(valueGrid, size, input_color, ownedX, ownedY, score);
         printf("\x1b[0;0H\x1b[2J");
     }
     for (int i = 0; i < size; i++) free(valueGrid[i]);
