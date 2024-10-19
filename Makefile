@@ -1,4 +1,4 @@
-OBJS = src/game.c src/color.h
+OBJS = src/game.c src/color.h src/grid.h src/grid.c
 
 #Change compiler here if required
 CC = gcc
