@@ -15,6 +15,7 @@ typedef enum
     DEAD_STATE = 0,
     PLAYER_WIN = 2,
     PLAYER_LOSE = -1,
+    PLAYER_DRAW = 3,
     RUNNING_STATE = 1
 } GameState;
 
@@ -139,45 +140,68 @@ int main()
     int** valueGrid = malloc(size * sizeof(*valueGrid));
     for (int i = 0; i < size; i++) valueGrid[i] = malloc(size * sizeof(*valueGrid[i]));
     init_game(valueGrid, size);
+    int turn = 0;
     int input_color = 0;
-    int ownedX[size * size];
-    int ownedY[size * size];
-    ownedX[0] = 0;
-    ownedY[0] = 0;
-    int score = 1;
+    int p1_ownedX[size * size];
+    int p1_ownedY[size * size];
+    int p2_ownedX[size * size];
+    int p2_ownedY[size * size];
+    p1_ownedX[0] = 0;
+    p1_ownedY[0] = 0;
+    p2_ownedX[0] = size-1;
+    p2_ownedY[0] = size-1;
+    int p1_color = valueGrid[p1_ownedX[0]][p1_ownedY[0]];
+    int p2_color = valueGrid[p2_ownedX[0]][p2_ownedY[0]];
+    int p1_score = 1;
+    int p2_score = 1;
     char availableColors[4];
     while (*statePtr == 1)
     {
-        sleep(1);
+        turn++;
         drawGrid(valueGrid, size);
         //not a string, but a char pointer.
-        char i_dst=0;
-        //get available colors for play by copying colors from src into destination whose size is src-2.
-        //src in this case is just an array of integers from 0 to 5;
-        for(int i = 0; i < size; i++)
-        {
-            //only elements not matching the corner get copied
-            if(!(i==valueGrid[0][0]||i==valueGrid[size-1][size-1]))
-            {
-                availableColors[i_dst]=i;
-                i_dst++;
-            }
-        }
         printf("\n\t\t");
         //prints the available options for play
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < 6; i++)
         {
-            printf("%d: %s " RESET"\t", availableColors[i], COLORS[availableColors[i]]);
+            if(p1_color != i && p2_color != i) printf("%d: %s " RESET"\t", i, COLORS[i]);
         }
         printf("\n");
-        scanf("%d",&input_color);
-        /*
-         check if input color is an available input and ask user again if invalid input
-        */
-        changeGridColor(valueGrid, input_color, ownedX, ownedY, score);
-        score = updateOwned(valueGrid, size, input_color, ownedX, ownedY, score);
+        do{
+          //makes sure the input is valid, retries if not
+          scanf("%d",&input_color);
+        } while( 
+          p1_color == input_color ||
+          p2_color == input_color ||
+          input_color > 5 ||
+          input_color < 0
+        );
+        if(turn % 2) {
+          p1_color = input_color;
+          changeGridColor(valueGrid, input_color, p1_ownedX, p1_ownedY, p1_score);
+          p1_score = updateOwned(valueGrid, size, input_color, p1_ownedX, p1_ownedY, p1_score);
+        }
+        else {
+          p2_color = input_color;
+          changeGridColor(valueGrid, input_color, p2_ownedX, p2_ownedY, p2_score);
+          p2_score = updateOwned(valueGrid, size, input_color, p2_ownedX, p2_ownedY, p2_score);
+        };
         printf("\x1b[0;0H\x1b[2J");
+        if(p1_score+p2_score == size * size) {
+          if(p1_score>p2_score) *statePtr = 2;
+          else if(p1_score>p2_score) *statePtr = -1;
+          else *statePtr = 3;
+        };
     }
+    switch(*statePtr)
+    {
+    case 2: printf("PLAYER 1 WINS!!!\n");
+    break;
+    case -1: printf("PLAYER 2 WINS!!!\n");
+    break;
+    case 3: printf("ITS A DRAW!!!\n");
+    break;
+    };
     for (int i = 0; i < size; i++) free(valueGrid[i]);
     free(valueGrid);
     return 0;
