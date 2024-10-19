@@ -51,6 +51,7 @@ int main()
 {
     printf("\x1b[0;0H\x1b[2J");
     printf("\t\t"RED " "ti_1"\n\t\t"YELLOW ti_2"\n\t\t"GREEN ti_3"\n\t\t"BLUE ti_4"\n\t\t"MAGENTA ti_5 RESET"\n\n");
+    printf("\n"tut"\n");
     printf("\t\t    "BOLD UNDERLINE "Would you like to play a game?\n"RESET);
     printf("\t\t\t"GREEN BOLD"[y]:Yes\t\t"RED"[n]:No"RESET"\n");
     char b = fgetc(stdin);

@@ -26,3 +26,4 @@ const char *COLORS[] ={REDBG, GREENBG, YELLOWBG, BLUEBG, MAGENTABG, CYANBG, WHIT
 #define ti_4 "| |_| | (_| | | | | | |  __/  _| | | | |  __/ |"
 #define ti_5 "\\____|\\__,_|_| |_| |_|\\___|_|   |_|_|_|\\___|_|"
 
+#define tut "GameFiller: A game about claiming all the boxes.\nThis game is inspired by the GamePigeon game for the iPhone, Filler\n\nClaim the most tiles!\nEach player starts by owning one square at opposite corners.\nTo claim a square you are touching, change to it's color.\nAll of your tiles switch to the new color!\nYou can't claim your current color or your opponent's.\n"
